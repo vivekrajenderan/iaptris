@@ -38,19 +38,19 @@ class AuthController extends Controller {
                 'zipcode' => isset($request->zipcode) ? $request->zipcode : '',
                 'mobile' => isset($request->mobile) ? $request->mobile : '',
                 'fk_roles_id' => $request->roles,
-                'status'=>'1'
-            );            
+                'status' => '1'
+            );
             $user = User::create($userdata);
 
             $accessToken = $user->createToken('authToken')->accessToken;
 
-            return response(['status' => true,'message'=>'Registered successfully', 'user' => $user, 'token' => $accessToken]);
+            return response(['status' => true, 'message' => 'Registered successfully', 'user' => $user, 'token' => $accessToken]);
         }
     }
 
     public function login(Request $request) {
         $validator = Validator::make($request->all(), [
-                    'email' => 'email|required',
+                    'email' => 'required',
                     'password' => 'required',
         ]);
         if ($validator->fails()) {
@@ -66,8 +66,7 @@ class AuthController extends Controller {
 
             if (!auth()->attempt($userdata)) {
                 return response(['status' => false, 'message' => 'Invalid Credentials']);
-            }
-
+            }            
             $accessToken = auth()->user()->createToken('authToken')->accessToken;
 
             return response(['status' => true, 'user' => auth()->user(), 'token' => $accessToken]);
@@ -173,58 +172,7 @@ class AuthController extends Controller {
                 User::find($request->id)->update($userdata);
                 return response()->json(["status" => true, "message" => 'User updated Successfully.']);
             }
-        } else {
-            $validator = Validator::make($request->all(), [
-                        'name' => 'required|max:55',
-                        'email' => 'email|required|unique:users',
-                        'dob' => 'required|date|before:-18 years',
-                        'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
-                        'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
-            ]);
-            if ($validator->fails()) {
-                return response()->json([
-                            'status' => false,
-                            'message' => implode(",", $validator->messages()->all())
-                                ], 200);
-            } else {
-                $userdata = array(
-                    'email' => $request->email,
-                    'password' => bcrypt('password123'),
-                    'name' => $request->name,
-                    'dob' => $request->dob,
-                    'address' => isset($request->address) ? $request->address : '',
-                    'companyname' => isset($request->companyname) ? $request->companyname : '',
-                    'country' => isset($request->country) ? $request->country : '',
-                    'state' => isset($request->state) ? $request->state : '',
-                    'zipcode' => isset($request->zipcode) ? $request->zipcode : '',
-                    'phone' => isset($request->phone) ? $request->phone : ''
-                );
-                if (in_array(null, $userdata, true) || in_array('', $userdata, true)) {
-                    $userdata['status'] = 'pending';
-                } else {
-                    $userdata['status'] = 'submitted';
-                }
-                $user = User::create($userdata);
-                return response()->json(["status" => true, "message" => 'User updated Successfully']);
-            }
         }
-    }
-
-    public function changeStatus(Request $request) {
-        if (isset($request->id) && !empty($request->id)) {
-            $userdata = array(
-                'status' => 'verified',
-            );
-            User::find($request->id)->update($userdata);
-            return response()->json(["status" => true, "message" => 'User verified Successfully.']);
-        } else {
-            return response()->json(["status" => false, "message" => 'User not verified Successfully.']);
-        }
-    }
-
-    public function dashboardDetails() {
-        $details = User::groupBy('status')->where('fk_usertypes_id', '2')->select('status', DB::raw('count(*) as statuscount'))->get();
-        return response()->json(["status" => true, "user" => $details]);
     }
 
 }

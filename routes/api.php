@@ -25,8 +25,6 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/userAll/{searchVal?}', 'Api\AuthController@userAll');
     Route::post('/changepassword', 'Api\AuthController@changepassword');
     Route::post('/logout', 'Api\AuthController@logout');
-    Route::post('/updateUser', 'Api\AuthController@updateUser');
-    Route::post('/changeStatus', 'Api\AuthController@changeStatus');
-    Route::get('/dashboardDetails', 'Api\AuthController@dashboardDetails');
+    Route::post('/updateUser', 'Api\AuthController@updateUser');    
 });
 //Route::apiResource('/usercreate', 'Api\AuthController@usercreate')->middleware('auth:api');
