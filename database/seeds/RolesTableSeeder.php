@@ -18,12 +18,12 @@ class RolesTableSeeder extends Seeder {
         'status' => '1',
         'dels' => '0'
             ], [
-                'name' => 'client',
+                'name' => 'freelance',
                 'status' => '1',
                 'dels' => '0'
             ],
                 [
-                'name' => 'designer',
+                'name' => 'client',
                 'status' => '1',
                 'dels' => '0'
             ]]
