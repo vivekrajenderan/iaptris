@@ -7,9 +7,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 
-class User extends Authenticatable
-{
-    use Notifiable, HasApiTokens;
+class User extends Authenticatable {
+
+    use Notifiable,
+        HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -17,7 +18,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password','dob','address','companyname','country','state','zipcode','phone','fk_usertypes_id','status',
+        'username', 'email', 'password', 'gender', 'address', 'companyname', 'country', 'state', 'zipcode', 'mobile',
+        'fk_roles_id', 'status', 'email_otp', 'mobile_otp', 'activationstatus', 'devicetoken', 'iosuser', 'androiduser',
+        'webuser'
     ];
 
     /**
@@ -37,4 +40,5 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
 }
