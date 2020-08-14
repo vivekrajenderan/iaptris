@@ -21,12 +21,17 @@ class UsersTableSeeder extends Seeder {
                     'gender' => 'male',
                     'password' => bcrypt('admin123'),
                     'fk_roles_id' => '1',
+                    'fk_university_id' => '1',
                     'address' => '',
-                    'country' => '',
+                    'city' => '',
+                    'qualification' => '',
                     'state' => '',
                     'companyname' => 'Iaptris',
+                    'companyemail' => 'iaptris@gmail.com',
                     'zipcode' => '',
                     'mobile' => '',
+                    'activationstatus' => '1',
+                    'status' => '1',
                     'created_at' => date("Y-m-d H:i:s")
                 )
         );

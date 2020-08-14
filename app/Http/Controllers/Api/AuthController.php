@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\User;
+use App\Models\Roles;
+use App\Models\University;
 use Illuminate\Http\Request;
 use Validator;
 use Input;
@@ -12,6 +14,12 @@ use App\Rules\MatchOldPassword;
 use DB;
 
 class AuthController extends Controller {
+
+    public function roles(Request $request) {
+//        echo "came";die;
+        $roles = Roles::where('status', '1')->get()->toArray();
+        return response()->json(['status' => true, 'roles' => $roles]);
+    }
 
     public function register(Request $request) {
 
@@ -24,21 +32,26 @@ class AuthController extends Controller {
         if ($validator->fails()) {
             return response()->json([
                         'status' => false,
-                        'message' => $validator->messages()->all()
+                        'message' => implode(",", $validator->messages()->all())
                             ], 200);
         } else {
+            $otp = mt_rand(100000, 999999);
             $userdata = array(
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
                 'username' => $request->username,
+                'gender' => isset($request->gender) ? $request->gender : '',
                 'address' => isset($request->address) ? $request->address : '',
                 'companyname' => isset($request->companyname) ? $request->companyname : '',
-                'country' => isset($request->country) ? $request->country : '',
+                'companyemail' => isset($request->companyemail) ? $request->companyemail : '',
+                'qualification' => isset($request->qualification) ? $request->qualification : '',
+                'city' => isset($request->city) ? $request->city : '',
                 'state' => isset($request->state) ? $request->state : '',
                 'zipcode' => isset($request->zipcode) ? $request->zipcode : '',
                 'mobile' => isset($request->mobile) ? $request->mobile : '',
+                'fk_university_id' => isset($request->fk_university_id) ? $request->fk_university_id : 0,
                 'fk_roles_id' => $request->roles,
-                'status' => '1'
+                'mobile_otp' => $otp
             );
             $user = User::create($userdata);
 
@@ -61,15 +74,39 @@ class AuthController extends Controller {
         } else {
             $userdata = array(
                 'email' => $request->email,
-                'password' => $request->password
+                'password' => $request->password,
             );
-
             if (!auth()->attempt($userdata)) {
                 return response(['status' => false, 'message' => 'Invalid Credentials']);
-            }            
-            $accessToken = auth()->user()->createToken('authToken')->accessToken;
+            }
+            $user = auth()->user();
 
+            //Check the active status
+            if (empty($user->activationstatus) || empty($user->status)) {
+                return response(['status' => false, 'message' => 'Please verify and activate the user.']);
+            }
+            $accessToken = auth()->user()->createToken('authToken')->accessToken;
             return response(['status' => true, 'user' => auth()->user(), 'token' => $accessToken]);
+        }
+    }
+
+    public function verifyOtp(Request $request) {
+        $validator = Validator::make($request->all(), [
+                    'id' => 'required',
+                    'mobile_otp' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                        'status' => false,
+                        'message' => implode(",", $validator->messages()->all())
+                            ], 200);
+        } else {
+            $userdetails = User::where(['id' => $request->id, 'mobile_otp' => $request->mobile_otp])->get()->toArray();
+            if (empty($userdetails)) {
+                return response(['status' => false, 'message' => 'Invalid OTP.']);
+            }
+            User::find($request->id)->update(array('status' => '1', 'activationstatus' => '1'));
+            return response()->json(['status' => true, 'message' => 'Otp verify successfully']);
         }
     }
 
@@ -128,7 +165,7 @@ class AuthController extends Controller {
     public function userAll($searchVal = null) {
         $userdetails = User::where('fk_usertypes_id', '2')->where(function($query) use ($searchVal) {
                     $query->where('name', 'LIKE', '%' . $searchVal . '%')
-                            ->orWhere('phone', 'LIKE', '%' . $searchVal . '%')
+                            ->orWhere('mobile', 'LIKE', '%' . $searchVal . '%')
                             ->orWhere('status', 'LIKE', '%' . $searchVal . '%')
                             ->orWhere('dob', 'LIKE', '%' . $searchVal . '%')
                             ->orWhere('email', 'LIKE', '%' . $searchVal . '%');
@@ -139,10 +176,8 @@ class AuthController extends Controller {
     public function updateUser(Request $request) {
         if (isset($request->id) && !empty($request->id)) {
             $validator = Validator::make($request->all(), [
-                        'name' => 'required|max:55',
                         'email' => 'unique:users,email,' . $request->id . '|email|required',
-                        'dob' => 'required|date|before:-18 years',
-                        'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
+                        'mobile' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
                         'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
             ]);
             if ($validator->fails()) {
@@ -153,14 +188,14 @@ class AuthController extends Controller {
             } else {
                 $userdata = array(
                     'email' => $request->email,
-                    'name' => $request->name,
-                    'dob' => $request->dob,
                     'address' => isset($request->address) ? $request->address : '',
                     'companyname' => isset($request->companyname) ? $request->companyname : '',
-                    'country' => isset($request->country) ? $request->country : '',
+                    'companyemail' => isset($request->companyemail) ? $request->companyemail : '',
+                    'city' => isset($request->city) ? $request->city : '',
                     'state' => isset($request->state) ? $request->state : '',
                     'zipcode' => isset($request->zipcode) ? $request->zipcode : '',
-                    'phone' => isset($request->phone) ? $request->phone : '',
+                    'mobile' => isset($request->mobile) ? $request->mobile : '',
+                    'fk_university_id' => isset($request->fk_university_id) ? $request->fk_university_id : '',
                 );
                 if ($request->status != 'verified') {
                     if (in_array(null, $userdata, true) || in_array('', $userdata, true)) {

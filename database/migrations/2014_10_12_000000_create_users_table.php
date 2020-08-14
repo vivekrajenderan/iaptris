@@ -13,19 +13,22 @@ class CreateUsersTable extends Migration {
      */
     public function up() {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();            
+            $table->id();
             $table->string('username');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('gender', ['male', 'female', 'others'])->nullable();
+            $table->string('gender')->nullable();
             $table->longText('address')->nullable();
             $table->string('companyname')->nullable();
-            $table->string('country')->nullable();
+            $table->string('companyemail')->nullable();
             $table->string('state')->nullable();
-            $table->string('zipcode', 10)->default(0);
-            $table->string('mobile', 12)->default(0);
-            $table->enum('fk_roles_id', ['1', '2'])->default('2');
+            $table->string('city')->nullable();
+            $table->string('zipcode', 10)->nullable();
+            $table->string('mobile', 12)->nullable();
+            $table->string('qualification', 100)->nullable();
+            $table->integer('fk_roles_id');
+            $table->integer('fk_university_id');
             $table->string('email_otp', 12)->default(0);
             $table->string('mobile_otp', 12)->default(0);
             $table->enum('activationstatus', ['0', '1'])->default('0');
