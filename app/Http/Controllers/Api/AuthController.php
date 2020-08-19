@@ -16,9 +16,13 @@ use DB;
 class AuthController extends Controller {
 
     public function roles(Request $request) {
-//        echo "came";die;
         $roles = Roles::where('status', '1')->get()->toArray();
         return response()->json(['status' => true, 'roles' => $roles]);
+    }
+
+    public function university(Request $request) {
+        $university = University::where('status', '1')->get()->toArray();
+        return response()->json(['status' => true, 'university' => $university]);
     }
 
     public function register(Request $request) {
@@ -27,7 +31,8 @@ class AuthController extends Controller {
                     'username' => 'required|max:55|unique:users',
                     'email' => 'email|required|unique:users',
                     'password' => 'required|confirmed',
-                    'roles' => 'required'
+                    'roles' => 'required',
+                    'certificate' => 'nullable|image|mimes:jpeg,jpg,png|max:10000',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -53,6 +58,13 @@ class AuthController extends Controller {
                 'fk_roles_id' => $request->roles,
                 'mobile_otp' => $otp
             );
+            if (isset($request->certificate) && !empty($request->certificate)) {
+                $file = $request->certificate;
+                $destinationPath = 'upload/certificate/';
+                $filename = md5(microtime() . $file->getClientOriginalName()) . "." . $file->getClientOriginalExtension();
+                $request->certificate->move($destinationPath, $filename);
+                $userdata['certificate'] = $filename;
+            }
             $user = User::create($userdata);
 
             $accessToken = $user->createToken('authToken')->accessToken;
@@ -110,8 +122,29 @@ class AuthController extends Controller {
         }
     }
 
+    public function resendOtp(Request $request) {
+        $validator = Validator::make($request->all(), [
+                    'id' => 'required'
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                        'status' => false,
+                        'message' => implode(",", $validator->messages()->all())
+                            ], 200);
+        } else {
+            $otp = mt_rand(100000, 999999);
+            $userdetails = User::where(['id' => $request->id])->get()->toArray();
+            if (empty($userdetails)) {
+                return response(['status' => false, 'message' => 'Invalid User.']);
+            }
+            User::find($request->id)->update(array('mobile_otp' => $otp));
+            return response()->json(['status' => true, 'message' => 'Otp send successfully', 'mobile_otp' => $otp]);
+        }
+    }
+
     public function changepassword(Request $request) {
         $validator = Validator::make($request->all(), [
+                    'id' => 'required',
                     'current_password' => ['required', new MatchOldPassword],
                     'new_password' => ['required'],
                     'new_confirm_password' => ['same:new_password'],
@@ -122,7 +155,7 @@ class AuthController extends Controller {
                         'message' => implode(",", $validator->messages()->all())
                             ], 200);
         } else {
-            User::find(auth()->user()->id)->update(['password' => bcrypt($request->new_password)]);
+            User::find($request->id)->update(['password' => bcrypt($request->new_password)]);
 
             return response(['status' => true, 'message' => 'Password has been changed successfully']);
         }

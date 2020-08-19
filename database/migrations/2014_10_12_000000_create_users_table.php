@@ -27,6 +27,7 @@ class CreateUsersTable extends Migration {
             $table->string('zipcode', 10)->nullable();
             $table->string('mobile', 12)->nullable();
             $table->string('qualification', 100)->nullable();
+            $table->string('certificate', 250)->nullable();
             $table->integer('fk_roles_id');
             $table->integer('fk_university_id');
             $table->string('email_otp', 12)->default(0);
