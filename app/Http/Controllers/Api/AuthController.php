@@ -28,11 +28,15 @@ class AuthController extends Controller {
     public function register(Request $request) {
 
         $validator = Validator::make($request->all(), [
+                    'fullname' => 'required|max:55',
                     'username' => 'required|max:55|unique:users',
                     'email' => 'email|required|unique:users',
                     'password' => 'required|confirmed',
                     'roles' => 'required',
+                    'devicetoken' => 'required',
                     'certificate' => 'nullable|image|mimes:jpeg,jpg,png|max:10000',
+                    'mobile' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
+                    'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -42,6 +46,7 @@ class AuthController extends Controller {
         } else {
             $otp = mt_rand(100000, 999999);
             $userdata = array(
+                'fullname' => $request->fullname,
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
                 'username' => $request->username,
@@ -56,6 +61,7 @@ class AuthController extends Controller {
                 'mobile' => isset($request->mobile) ? $request->mobile : '',
                 'fk_university_id' => isset($request->fk_university_id) ? $request->fk_university_id : 0,
                 'fk_roles_id' => $request->roles,
+                'devicetoken' => $request->devicetoken,
                 'mobile_otp' => $otp
             );
             if (isset($request->certificate) && !empty($request->certificate)) {
@@ -208,37 +214,41 @@ class AuthController extends Controller {
 
     public function updateUser(Request $request) {
         if (isset($request->id) && !empty($request->id)) {
-            $validator = Validator::make($request->all(), [
-                        'email' => 'unique:users,email,' . $request->id . '|email|required',
-                        'mobile' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
-                        'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
-            ]);
-            if ($validator->fails()) {
-                return response()->json([
-                            'status' => false,
-                            'message' => implode(",", $validator->messages()->all())
-                                ], 200);
-            } else {
-                $userdata = array(
-                    'email' => $request->email,
-                    'address' => isset($request->address) ? $request->address : '',
-                    'companyname' => isset($request->companyname) ? $request->companyname : '',
-                    'companyemail' => isset($request->companyemail) ? $request->companyemail : '',
-                    'city' => isset($request->city) ? $request->city : '',
-                    'state' => isset($request->state) ? $request->state : '',
-                    'zipcode' => isset($request->zipcode) ? $request->zipcode : '',
-                    'mobile' => isset($request->mobile) ? $request->mobile : '',
-                    'fk_university_id' => isset($request->fk_university_id) ? $request->fk_university_id : '',
-                );
-                if ($request->status != 'verified') {
-                    if (in_array(null, $userdata, true) || in_array('', $userdata, true)) {
-                        $userdata['status'] = 'pending';
-                    } else {
-                        $userdata['status'] = 'submitted';
-                    }
+            $userdetails = User::where(['id' => $request->id])->get()->toArray();
+            if (count($userdetails) > 0) {
+                $validator = Validator::make($request->all(), [
+                            'email' => 'nullable|unique:users,email,' . $request->id . '|email',
+                            'username' => 'nullable|unique:users,username,' . $request->id,
+                            'mobile' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
+                            'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
+                ]);
+                if ($validator->fails()) {
+                    return response()->json([
+                                'status' => false,
+                                'message' => implode(",", $validator->messages()->all())
+                                    ], 200);
+                } else {
+                    $userdata = array(
+                        'fullname' => (isset($request->fullname) && !empty($request->fullname)) ? $request->fullname : $userdetails[0]['fullname'],
+                        'email' => (isset($request->email) && !empty($request->email)) ? $request->email : $userdetails[0]['email'],
+                        'username' => (isset($request->username) && !empty($request->username)) ? $request->username : $userdetails[0]['username'],
+                        'gender' => (isset($request->gender) && !empty($request->gender)) ? $request->gender : $userdetails[0]['gender'],
+                        'address' => (isset($request->address) && !empty($request->address)) ? $request->address : $userdetails[0]['address'],
+                        'companyname' => (isset($request->companyname) && !empty($request->companyname)) ? $request->companyname : $userdetails[0]['companyname'],
+                        'companyemail' => (isset($request->companyemail) && !empty($request->companyemail)) ? $request->companyemail : $userdetails[0]['companyemail'],
+                        'qualification' => (isset($request->qualification) && !empty($request->qualification)) ? $request->qualification : $userdetails[0]['qualification'],
+                        'city' => (isset($request->city) && !empty($request->city)) ? $request->city : $userdetails[0]['city'],
+                        'state' => (isset($request->state) && !empty($request->state)) ? $request->state : $userdetails[0]['state'],
+                        'zipcode' => (isset($request->zipcode) && !empty($request->zipcode)) ? $request->zipcode : $userdetails[0]['zipcode'],
+                        'mobile' => (isset($request->mobile) && !empty($request->mobile)) ? $request->mobile : $userdetails[0]['mobile'],
+                        'fk_university_id' => (isset($request->fk_university_id) && !empty($request->fk_university_id)) ? $request->fk_university_id : $userdetails[0]['fk_university_id'],
+                        'devicetoken' => (isset($request->devicetoken) && !empty($request->devicetoken)) ? $request->devicetoken : $userdetails[0]['devicetoken']
+                    );
+                    User::find($request->id)->update($userdata);
+                    return response()->json(["status" => true, "message" => 'User updated Successfully.']);
                 }
-                User::find($request->id)->update($userdata);
-                return response()->json(["status" => true, "message" => 'User updated Successfully.']);
+            } else {
+                return response()->json(["status" => false, "message" => 'Invalid User.']);
             }
         }
     }

@@ -18,13 +18,28 @@ class Project extends Model {
      *
      * @var array
      */
-    protected $fillable = ['name', 'fk_category_id','fk_season_id','fk_designertype_id','stylefor','brandname','brandimage',
-        'deliverytime','designbudget','createdBy','status'];
+    protected $fillable = ['stylenumber', 'fk_category_id', 'fk_season_id', 'fk_designertype_id', 'stylefor', 'brandname', 'brandimage',
+        'deliverytime', 'designbudget', 'createdBy', 'status','projectamount','projectstatus'];
 
     /*
      * The attributes excluded from the model's JSON form.
      *
      * @var array
      */
+
     //protected $hidden = ['password', 'remember_token'];
+
+
+    public function category() {
+        return $this->belongsTo('App\Models\Category', 'fk_category_id', 'id');
+    }
+
+    public function season() {
+        return $this->belongsTo('App\Models\Season', 'fk_category_id', 'id');
+    }
+
+    public function designertype() {
+        return $this->belongsTo('App\Models\Designertype', 'fk_category_id', 'id');
+    }
+
 }

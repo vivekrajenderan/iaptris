@@ -4,21 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model {
+class Projectpayment extends Model {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'category';
+    protected $table = 'projectpayment';
 
     /*
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['name', 'status'];
+    protected $fillable = ['fk_project_id', 'txnid', 'payid', 'amount', 'message','txnstatus'];
 
     /*
      * The attributes excluded from the model's JSON form.
@@ -28,8 +28,5 @@ class Category extends Model {
 
     //protected $hidden = ['password', 'remember_token'];
 
-    public function projects() {
-        return $this->hasMany('App\Models\Project');
-    }
 
 }

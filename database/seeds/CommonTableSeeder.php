@@ -23,7 +23,7 @@ class CommonTableSeeder extends Seeder {
                 'dels' => '0'
             ],
                 [
-                'name' => 'Deisigner',
+                'name' => 'Designer',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
                 'status' => '1',

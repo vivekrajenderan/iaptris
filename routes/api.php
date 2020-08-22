@@ -31,7 +31,10 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/logout', 'Api\AuthController@logout');
     Route::post('/updateUser', 'Api\AuthController@updateUser');    
     Route::get('/getProjectDropdown', 'Api\WholesaleController@getProjectDropdown');    
-    Route::get('/getProjects', 'Api\WholesaleController@getProjects');    
+    Route::get('/getProjects/{projectid?}', 'Api\WholesaleController@getProjects');    
     Route::post('/addProject', 'Api\WholesaleController@addProject');    
+    Route::post('/updateProject', 'Api\WholesaleController@updateProject');    
+    Route::post('/updatePayment', 'Api\WholesaleController@updatePayment');    
+    Route::get('/report/{projectid?}', 'Api\WholesaleController@report');    
 });
 //Route::apiResource('/usercreate', 'Api\AuthController@usercreate')->middleware('auth:api');
