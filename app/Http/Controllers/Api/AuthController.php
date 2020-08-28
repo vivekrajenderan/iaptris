@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\User;
+use App\Models\Project;
 use App\Models\Roles;
 use App\Models\University;
 use Illuminate\Http\Request;
@@ -170,7 +171,18 @@ class AuthController extends Controller {
     public function userDetails(Request $request) {
         if (isset($request->id) && !empty($request->id)) {
             $userdetails = User::where('id', $request->id)->get()->toArray();
-            return response()->json(['status' => true, 'user' => $userdetails]);
+            $projects=array();
+            if (count($userdetails) > 0) {                
+                $query = Project::where(['project.status' => '1', 'project.dels' => '0', 'project.createdBy' => $request->id])
+                        ->join('category as c', 'c.id', '=', 'project.fk_category_id')
+                        ->join('season as s', 's.id', '=', 'project.fk_season_id')
+                        ->join('designertype as d', 'd.id', '=', 'project.fk_designertype_id')
+                        ->select(['project.id', 'project.stylefor', 'project.brandname', 'project.brandimage', 'project.deliverytime',
+                    'project.designbudget', 'project.projectamount', 'project.projectstatus', 'c.name as categoryname', 's.name as seasonname', 'd.name as designername']);
+                $projects = $query->get()->toArray();                
+            }
+
+            return response()->json(['status' => true, 'user' => $userdetails,'projects'=>$projects]);
         }
     }
 
@@ -251,6 +263,16 @@ class AuthController extends Controller {
                 return response()->json(["status" => false, "message" => 'Invalid User.']);
             }
         }
+    }
+
+    public function topRoles() {
+        $roles = Roles::where('status', '1')->get()->toArray();
+        $data = array();
+        foreach ($roles as $key => $value) {
+            $userdetails = User::where(['fk_roles_id' => $value['id']])->get()->toArray();
+            $data[$value['name']] = $userdetails;
+        }
+        return response()->json(["status" => true, "data" => $data]);
     }
 
 }

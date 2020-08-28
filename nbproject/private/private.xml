@@ -6,14 +6,18 @@
             <file>file:/var/www/html/collar/app/Models/Projectpayment.php</file>
             <file>file:/var/www/html/collar/app/Http/Controllers/Api/WholesaleController.php</file>
             <file>file:/var/www/html/collar/app/User.php</file>
+            <file>file:/var/www/html/collar/composer.json</file>
             <file>file:/var/www/html/collar/database/migrations/2014_10_12_000000_create_users_table.php</file>
             <file>file:/var/www/html/collar/app/Exceptions/Handler.php</file>
+            <file>file:/var/www/html/collar/app/Providers/HelperServiceProvider.php</file>
             <file>file:/var/www/html/collar/app/Models/Category.php</file>
             <file>file:/var/www/html/collar/database/migrations/2020_08_22_070405_create_projectpayment_table.php</file>
             <file>file:/var/www/html/collar/app/Http/Controllers/Api/AuthController.php</file>
             <file>file:/var/www/html/collar/routes/api.php</file>
             <file>file:/var/www/html/collar/database/migrations/2020_08_19_101753_create_project_table.php</file>
             <file>file:/var/www/html/collar/config/database.php</file>
+            <file>file:/var/www/html/collar/app/Helpers/Helper.php</file>
+            <file>file:/var/www/html/collar/config/app.php</file>
             <file>file:/var/www/html/collar/app/Models/Project.php</file>
             <file>file:/var/www/html/collar/database/seeds/CommonTableSeeder.php</file>
         </group>
