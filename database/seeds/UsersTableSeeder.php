@@ -15,6 +15,7 @@ class UsersTableSeeder extends Seeder {
         Model::unguard();
         DB::table('users')->insert(
                 array(                    
+                    'fullname' => 'admin',
                     'username' => 'admin',
                     'email' => 'admin@collarweb.com',
                     'status' => '1',

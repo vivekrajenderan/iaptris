@@ -17,7 +17,7 @@ use DB;
 class AuthController extends Controller {
 
     public function roles(Request $request) {
-        $roles = Roles::where('status', '1')->get()->toArray();
+        $roles = Roles::where('status', '1')->whereNotIn('id', [1])->get()->toArray();
         return response()->json(['status' => true, 'roles' => $roles]);
     }
 
@@ -37,7 +37,8 @@ class AuthController extends Controller {
                     'devicetoken' => 'required',
                     'certificate' => 'nullable|image|mimes:jpeg,jpg,png|max:10000',
                     'mobile' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
-                    'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
+                    'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8',
+                    'profileimage' => 'nullable|image|mimes:jpeg,jpg,png|max:10000',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -71,6 +72,13 @@ class AuthController extends Controller {
                 $filename = md5(microtime() . $file->getClientOriginalName()) . "." . $file->getClientOriginalExtension();
                 $request->certificate->move($destinationPath, $filename);
                 $userdata['certificate'] = $filename;
+            }
+            if (isset($request->profileimage) && !empty($request->profileimage)) {
+                $file = $request->profileimage;
+                $destinationPath = 'upload/profile/';
+                $filename = md5(microtime() . $file->getClientOriginalName()) . "." . $file->getClientOriginalExtension();
+                $request->profileimage->move($destinationPath, $filename);
+                $userdata['profileimage'] = $filename;
             }
             $user = User::create($userdata);
 
@@ -170,19 +178,21 @@ class AuthController extends Controller {
 
     public function userDetails(Request $request) {
         if (isset($request->id) && !empty($request->id)) {
-            $userdetails = User::where('id', $request->id)->get()->toArray();
-            $projects=array();
-            if (count($userdetails) > 0) {                
+            $imageUrl = url('/upload/profile/');
+            $userdetails = User::select('id', 'fullname', 'email', 'gender', 'address', 'companyname', 'companyemail', 'qualification', 'certificate', 'city', 'state', 'zipcode', 'mobile','fk_roles_id', 'fk_university_id', DB::raw("CONCAT('" . $imageUrl . "/', profileimage) AS profileimage"))
+                            ->where('id', $request->id)->get()->toArray();
+            $projects = array();
+            if (count($userdetails) > 0) {
                 $query = Project::where(['project.status' => '1', 'project.dels' => '0', 'project.createdBy' => $request->id])
                         ->join('category as c', 'c.id', '=', 'project.fk_category_id')
                         ->join('season as s', 's.id', '=', 'project.fk_season_id')
                         ->join('designertype as d', 'd.id', '=', 'project.fk_designertype_id')
                         ->select(['project.id', 'project.stylefor', 'project.brandname', 'project.brandimage', 'project.deliverytime',
                     'project.designbudget', 'project.projectamount', 'project.projectstatus', 'c.name as categoryname', 's.name as seasonname', 'd.name as designername']);
-                $projects = $query->get()->toArray();                
+                $projects = $query->get()->toArray();
             }
 
-            return response()->json(['status' => true, 'user' => $userdetails,'projects'=>$projects]);
+            return response()->json(['status' => true, 'user' => $userdetails, 'projects' => $projects]);
         }
     }
 
@@ -232,7 +242,8 @@ class AuthController extends Controller {
                             'email' => 'nullable|unique:users,email,' . $request->id . '|email',
                             'username' => 'nullable|unique:users,username,' . $request->id,
                             'mobile' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:12',
-                            'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8'
+                            'zipcode' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5|max:8',
+                            'profileimage' => 'nullable|image|mimes:jpeg,jpg,png|max:10000',
                 ]);
                 if ($validator->fails()) {
                     return response()->json([
@@ -256,6 +267,21 @@ class AuthController extends Controller {
                         'fk_university_id' => (isset($request->fk_university_id) && !empty($request->fk_university_id)) ? $request->fk_university_id : $userdetails[0]['fk_university_id'],
                         'devicetoken' => (isset($request->devicetoken) && !empty($request->devicetoken)) ? $request->devicetoken : $userdetails[0]['devicetoken']
                     );
+
+                    //Upload brand image
+                    if (isset($request->profileimage) && !empty($request->profileimage)) {
+                        if (!empty($userdetails[0]["profileimage"])) {
+                            $image_file = './upload/profile/' . $userdetails[0]["profileimage"];
+                            if (file_exists($image_file)) {
+                                unlink($image_file);
+                            }
+                        }
+                        $file = $request->profileimage;
+                        $destinationPath = 'upload/profile/';
+                        $filename = md5(microtime() . $file->getClientOriginalName()) . "." . $file->getClientOriginalExtension();
+                        $request->profileimage->move($destinationPath, $filename);
+                        $userdata['profileimage'] = $filename;
+                    }
                     User::find($request->id)->update($userdata);
                     return response()->json(["status" => true, "message" => 'User updated Successfully.']);
                 }
@@ -266,10 +292,12 @@ class AuthController extends Controller {
     }
 
     public function topRoles() {
-        $roles = Roles::where('status', '1')->get()->toArray();
+//        echo url('/upload/profile/');die;
+        $roles = Roles::where(['status' => '1'])->whereNotIn('id', [1])->get()->toArray();
         $data = array();
+        $imageUrl = url('/upload/profile/');
         foreach ($roles as $key => $value) {
-            $userdetails = User::where(['fk_roles_id' => $value['id']])->get()->toArray();
+            $userdetails = User::select("id", "fullname", DB::raw("'4' as rating"), DB::raw("CONCAT('" . $imageUrl . "/', profileimage) AS profileimage"))->where(['fk_roles_id' => $value['id']])->get()->toArray();
             $data[$value['name']] = $userdetails;
         }
         return response()->json(["status" => true, "data" => $data]);

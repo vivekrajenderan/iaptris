@@ -24,13 +24,13 @@ Route::post('/verifyOtp', 'Api\AuthController@verifyOtp');
 Route::post('/resendOtp', 'Api\AuthController@resendOtp');
 Route::get('/roles', 'Api\AuthController@roles');
 Route::get('/university', 'Api\AuthController@university');
-Route::group(['middleware' => ['auth:api']], function () {
-    Route::get('/userDetails/{id}', 'Api\AuthController@userDetails');
+Route::get('/topRoles', 'Api\AuthController@topRoles'); 
+Route::get('/userDetails/{id}', 'Api\AuthController@userDetails');
+Route::group(['middleware' => ['auth:api']], function () {    
     Route::get('/userAll/{searchVal?}', 'Api\AuthController@userAll');
     Route::post('/changepassword', 'Api\AuthController@changepassword');
     Route::post('/logout', 'Api\AuthController@logout');
     Route::post('/updateUser', 'Api\AuthController@updateUser'); 
-    Route::get('/topRoles', 'Api\AuthController@topRoles'); 
     
     // Wholesale
     Route::get('/getProjectDropdown', 'Api\WholesaleController@getProjectDropdown');    

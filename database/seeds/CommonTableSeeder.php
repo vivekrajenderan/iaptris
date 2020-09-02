@@ -16,14 +16,21 @@ class CommonTableSeeder extends Seeder {
         // Roles
         DB::table('roles')->insert([
                 [
-                'name' => 'Client',
+                'name' => 'Admin',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
                 'status' => '1',
                 'dels' => '0'
             ],
                 [
-                'name' => 'Designer',
+                'name' => 'Fashion Designer',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+                'status' => '1',
+                'dels' => '0'
+            ],
+                [
+                'name' => 'Whole Saler',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
                 'status' => '1',
@@ -35,7 +42,7 @@ class CommonTableSeeder extends Seeder {
                 'status' => '1',
                 'dels' => '0'
             ], [
-                'name' => 'Retailer',
+                'name' => 'Retailers',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
                 'status' => '1',
