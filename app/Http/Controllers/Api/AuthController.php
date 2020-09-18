@@ -292,15 +292,16 @@ class AuthController extends Controller {
     }
 
     public function topRoles() {
-//        echo url('/upload/profile/');die;
         $roles = Roles::where(['status' => '1'])->whereNotIn('id', [1])->get()->toArray();
         $data = array();
         $imageUrl = url('/upload/profile/');
         foreach ($roles as $key => $value) {
             $userdetails = User::select("id", "fullname", DB::raw("'4' as rating"), DB::raw("CONCAT('" . $imageUrl . "/', profileimage) AS profileimage"))->where(['fk_roles_id' => $value['id']])->get()->toArray();
-            $data[$value['name']] = $userdetails;
+            $data[$key]['category'] = $value['name'];
+            $data[$key]['categoryArray'] = $userdetails;
+            
         }
-        return response()->json(["status" => true, "data" => $data]);
+        return response()->json(["status" => true, "dataArray" => $data]);
     }
 
 }
